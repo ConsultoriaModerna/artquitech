@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-02-24.acacia',
-});
+function getStripe() {
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key) throw new Error('STRIPE_SECRET_KEY not configured');
+  return new Stripe(key, { apiVersion: '2025-02-24.acacia' });
+}
 
 export async function POST(request: NextRequest) {
   try {
+    const stripe = getStripe();
     const origin = request.headers.get('origin') || 'http://localhost:3000';
 
     const session = await stripe.checkout.sessions.create({
@@ -15,7 +18,7 @@ export async function POST(request: NextRequest) {
         {
           price_data: {
             currency: 'usd',
-            unit_amount: 19900, // $199.00 in cents
+            unit_amount: 19900,
             product_data: {
               name: 'ArtquiTech Pro',
             },
